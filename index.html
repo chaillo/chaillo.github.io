@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手语识别 AI 系统 | Sign Language Recognition</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #0D0F14;
+  --panel:  #14161D;
+  --card:   #1C1F2B;
+  --border: #252836;
+  --accent: #4F8EF7;
+  --green:  #3DD68C;
+  --amber:  #F7A842;
+  --text:   #E8EAF0;
+  --muted:  #7B7F96;
+  --teal:   #3DCFCF;
+  --pink:   #F75599;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* ── 导航 ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(13,15,20,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  padding: 0 2rem;
+  display: flex; align-items: center; gap: 2rem;
+  height: 60px;
+}
+.nav-logo { font-size: 1.05rem; font-weight: 700; color: var(--accent); display:flex; align-items:center; gap:8px; }
+.nav-links { display: flex; gap: 1.5rem; margin-left: auto; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+
+/* ── 通用 ── */
+.container { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+section { padding: 5rem 0; }
+
+.section-tag {
+  display: inline-block;
+  background: rgba(79,142,247,0.12);
+  color: var(--accent);
+  border: 1px solid rgba(79,142,247,0.28);
+  border-radius: 999px;
+  padding: 3px 14px; font-size: 0.78rem;
+  letter-spacing: .06em; margin-bottom: 1rem;
+}
+
+h2 { font-size: 1.9rem; font-weight: 700; margin-bottom: 1.2rem; }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh; padding-top: 60px;
+  display: flex; align-items: center;
+  background:
+    radial-gradient(ellipse at 15% 50%, rgba(79,142,247,.07), transparent 55%),
+    radial-gradient(ellipse at 85% 20%, rgba(61,214,140,.05), transparent 50%);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem; align-items: center;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 999px; padding: 5px 16px;
+  font-size: 0.82rem; color: var(--muted); margin-bottom: 1.4rem;
+}
+.hero-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+.hero-title {
+  font-size: 2.8rem; font-weight: 800; line-height: 1.18; margin-bottom: 1.4rem;
+}
+.hero-title span { color: var(--accent); }
+
+.hero-desc { color: var(--muted); font-size: 1rem; line-height: 1.9; margin-bottom: 2rem; }
+
+.btn-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px; border-radius: 8px;
+  font-size: 0.92rem; font-weight: 600;
+  text-decoration: none; cursor: pointer;
+  border: none; transition: all .18s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3a7be0; }
+.btn-secondary {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--card); }
+
+/* 右侧统计卡 */
+.hero-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem;
+}
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin-top: 1.5rem;
+}
+.stat-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: .9rem;
+  text-align: center;
+}
+.stat-num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+.stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+/* ── 个人介绍 ── */
+#about { background: var(--panel); }
+
+.about-grid { display: grid; grid-template-columns: 220px 1fr; gap: 3rem; align-items: start; }
+
+.profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.8rem;
+  text-align: center;
+}
+.avatar {
+  width: 76px; height: 76px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #7C5CFC);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; margin: 0 auto 1rem;
+  border: 3px solid rgba(79,142,247,.3);
+}
+.profile-name { font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem; }
+.profile-role { font-size: .82rem; color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 1rem; }
+.tag {
+  background: rgba(79,142,247,.1); color: var(--accent);
+  border: 1px solid rgba(79,142,247,.2);
+  border-radius: 5px; padding: 3px 9px; font-size: .75rem;
+}
+
+.about-text h3 {
+  font-size: 1.1rem; font-weight: 700;
+  margin: 1.4rem 0 .5rem; color: var(--text);
+}
+.about-text h3:first-child { margin-top: 0; }
+.about-text p { color: var(--muted); font-size: .95rem; }
+
+.callout {
+  background: rgba(61,214,140,.07);
+  border: 1px solid rgba(61,214,140,.2);
+  border-left: 3px solid var(--green);
+  border-radius: 8px; padding: .9rem 1.1rem;
+  margin-top: 1rem; font-size: .88rem; color: var(--muted);
+}
+.callout strong { color: var(--green); }
+
+/* ── DEMO ── */
+#demo { }
+
+.demo-layout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* 竖屏视频容器 */
+.video-phone {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.phone-frame {
+  background: #1a1a2e;
+  border: 3px solid #333;
+  border-radius: 36px;
+  padding: 12px;
+  box-shadow:
+    0 0 0 1px #222,
+    0 20px 60px rgba(0,0,0,.6),
+    0 0 40px rgba(79,142,247,.12);
+  position: relative;
+}
+
+/* 手机顶部摄像头区 */
+.phone-frame::before {
+  content: '';
+  display: block;
+  width: 60px; height: 10px;
+  background: #111;
+  border-radius: 999px;
+  margin: 0 auto 8px;
+}
+
+.phone-screen {
+  border-radius: 26px;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+}
+
+.phone-screen video {
+  width: 100%;
+  display: block;
+  border-radius: 26px;
+}
+
+/* 播放按钮覆层 */
+.play-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.35);
+  border-radius: 26px;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.play-overlay.hidden { opacity: 0; pointer-events: none; }
+.play-icon {
+  width: 60px; height: 60px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 0 30px rgba(79,142,247,.5);
+}
+
+/* 右侧信息 */
+.demo-info { }
+.demo-info h3 {
+  font-size: 1.2rem; font-weight: 700;
+  margin-bottom: .8rem; color: var(--text);
+}
+.demo-info p { color: var(--muted); font-size: .92rem; margin-bottom: 1.2rem; }
+
+.feat-list { display: flex; flex-direction: column; gap: .7rem; margin-bottom: 1.5rem; }
+.feat-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: .8rem 1rem;
+}
+.feat-icon { font-size: 1.2rem; flex-shrink: 0; }
+.feat-body {}
+.feat-title { font-size: .9rem; font-weight: 600; margin-bottom: 2px; }
+.feat-desc  { font-size: .78rem; color: var(--muted); }
+
+.video-note {
+  background: rgba(247,168,66,.07);
+  border: 1px solid rgba(247,168,66,.2);
+  border-radius: 8px; padding: .7rem 1rem;
+  font-size: .82rem; color: var(--muted);
+}
+.video-note strong { color: var(--amber); }
+
+/* ── 技术方案 ── */
+#tech { background: var(--panel); }
+
+.flow {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: .5rem; margin: 1.5rem 0;
+}
+.flow-step {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 14px;
+  font-size: .82rem; white-space: nowrap;
+}
+.flow-arrow { color: var(--accent); }
+
+.tech-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.2rem; margin-top: 1.5rem;
+}
+.tech-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.3rem;
+  position: relative; overflow: hidden;
+}
+.tech-card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+}
+.tech-card h3 { font-size: .95rem; font-weight: 700; margin-bottom: .6rem; }
+.tech-card p  { font-size: .85rem; color: var(--muted); line-height: 1.7; }
+
+.stack-pills {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.5rem;
+}
+.stack-pill {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 12px;
+  font-size: .82rem; color: var(--text);
+}
+.stack-pill b { color: var(--accent); }
+
+/* ── Footer ── */
+footer {
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  padding: 2rem 0; text-align: center;
+  font-size: .85rem; color: var(--muted);
+}
+footer a { color: var(--accent); text-decoration: none; }
+
+/* ── 响应式 ── */
+@media (max-width: 720px) {
+  .hero-grid    { grid-template-columns: 1fr; }
+  .about-grid   { grid-template-columns: 1fr; }
+  .demo-layout  { grid-template-columns: 1fr; }
+  .video-phone  { width: 220px; margin: 0 auto; }
+  .tech-grid    { grid-template-columns: 1fr; }
+  .hero-title   { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">🤟 手语 AI</span>
+  <div class="nav-links">
+    <a href="#about">关于我</a>
+    <a href="#demo">演示</a>
+    <a href="#tech">技术方案</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══════════════════════════════════════════ -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-grid">
+
+      <div>
+        <div class="hero-badge">
+          <span class="dot"></span>
+          项目已运行 · 持续迭代中
+        </div>
+        <h1 class="hero-title">用 AI 让<br><span>手语被看见</span></h1>
+        <p class="hero-desc">
+          一个用深度学习做的手语识别系统。<br>
+          对着摄像头做手势，电脑能实时翻译成文字，<br>
+          还能识别面部表情、判断手部位置，自动组成句子。
+        </p>
+        <div class="btn-group">
+          <a href="#demo" class="btn btn-primary">▶ 看演示视频</a>
+          <a href="#tech" class="btn btn-secondary">技术方案</a>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div style="font-size:1rem;font-weight:700;margin-bottom:.4rem;">手语识别 AI 系统</div>
+        <div style="font-size:.85rem;color:var(--muted);">基于 MediaPipe + TensorFlow · 参考《国家通用手语常用词表》</div>
+        <div class="stat-grid">
+          <div class="stat-item"><div class="stat-num">33+</div><div class="stat-lbl">内置词汇</div></div>
+          <div class="stat-item"><div class="stat-num">21</div><div class="stat-lbl">手部关键点</div></div>
+          <div class="stat-item"><div class="stat-num">468</div><div class="stat-lbl">面部关键点</div></div>
+          <div class="stat-item"><div class="stat-num">0.35s</div><div class="stat-lbl">触发速度</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ 个人介绍 ════════════════════════════════════════ -->
+<section id="about">
+  <div class="container">
+    <span class="section-tag">ABOUT ME</span>
+    <h2>关于我</h2>
+
+    <div class="about-grid">
+      <div>
+        <div class="profile-card">
+          <div class="avatar">👤</div>
+          <div class="profile-name">项目作者</div>
+          <div class="profile-role">编程初学者 · AI 探索者</div>
+          <div class="tags">
+            <span class="tag">Python</span>
+            <span class="tag">MediaPipe</span>
+            <span class="tag">TensorFlow</span>
+            <span class="tag">OpenCV</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-text">
+        <h3>我是谁</h3>
+        <p>我是一名编程初学者，在学校里做了这个手语识别的课程项目。做这个项目之前，我对 AI 和深度学习几乎一无所知，只会写一些简单的 Python 代码。</p>
+
+        <h3>为什么做这个项目</h3>
+        <p>聋哑人在和普通人沟通时很不方便——大多数人看不懂手语，而专业翻译成本高、不随时可用。如果电脑能实时"看懂"手语并翻译成文字，这个问题就能部分解决，这让我觉得这个方向很有意义。</p>
+
+        <p style="margin-top:.8rem;">我也想通过这个项目真正搞懂"AI 是怎么工作的"——不是背概念，而是自己动手做一个能跑起来的东西，从零开始理解深度学习的全流程。</p>
+
+        <div class="callout">
+          <strong>最大的收获：</strong>从安装 Python、配环境、排版本冲突报错，到最后看到摄像头认出"你好"两个字——这个过程让我真正明白了深度学习不是魔法，就是让电脑通过大量例子自己学规律。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ DEMO ════════════════════════════════════════════ -->
+<section id="demo">
+  <div class="container">
+    <span class="section-tag">DEMO</span>
+    <h2>演示视频</h2>
+
+    <div class="demo-layout">
+
+      <!-- 竖屏视频，套手机外框 -->
+      <div class="video-phone">
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <video id="demoVideo" preload="metadata" playsinline>
+              <source src="demo_h264.mp4" type="video/mp4">
+              您的浏览器不支持 HTML5 视频播放。
+            </video>
+            <div class="play-overlay" id="playOverlay" onclick="togglePlay()">
+              <div class="play-icon" id="playIcon">▶</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧说明 -->
+      <div class="demo-info">
+        <h3>系统实际运行效果</h3>
+        <p>视频展示了系统在笔记本摄像头下的实时识别效果：手势被检测到后，右侧面板立即显示识别结果、置信度、手部位置区域和面部表情状态。</p>
+
+        <div class="feat-list">
+          <div class="feat-item">
+            <span class="feat-icon">🖐</span>
+            <div class="feat-body">
+              <div class="feat-title">手势实时识别</div>
+              <div class="feat-desc">保持手势 0.35 秒触发一个词，5 帧平滑过滤误识别</div>
+            </div>
+          </div>
+          <div class="feat-item">
+            <span class="feat-icon">↔</span>
+            <div class="feat-body">
+              <div class="feat-title">左右手区分</div>
+              <div class="feat-desc">绿色骨骼 = 右手，蓝色骨骼 = 左手，颜色标注直观</div>
+            </div>
+          </div>
+          <div class="feat-item">
+            <span class="feat-icon">📍</span>
+            <div class="feat-body">
+              <div class="feat-title">手部位置判断</div>
+              <div class="feat-desc">实时显示手在头部 / 胸部 / 腹部等哪个身体区域</div>
+            </div>
+          </div>
+          <div class="feat-item">
+            <span class="feat-icon">😊</span>
+            <div class="feat-body">
+              <div class="feat-title">面部表情识别</div>
+              <div class="feat-desc">468 个关键点分析嘴巴开合、眉毛、眼睛状态</div>
+            </div>
+          </div>
+          <div class="feat-item">
+            <span class="feat-icon">📝</span>
+            <div class="feat-body">
+              <div class="feat-title">句子自动组合</div>
+              <div class="feat-desc">词语按顺序拼成句子，超 1 秒无手势自动换句</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="video-note">
+          <strong>提示：</strong>视频为竖屏录制，展示笔记本实际运行画面。系统在 CPU 上实时运行，无需独立显卡。
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ 技术方案 ═════════════════════════════════════════ -->
+<section id="tech">
+  <div class="container">
+    <span class="section-tag">TECH</span>
+    <h2>技术方案和实现思路</h2>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.3rem;margin-bottom:1.2rem;">
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem;">整体数据流程</div>
+      <div class="flow">
+        <div class="flow-step">📷 摄像头</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">🖐 MediaPipe 检测手部 21 点</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">🔢 归一化为 63 维特征</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">🧠 神经网络分类</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">📝 组合成句子</div>
+      </div>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <h3>🖐 手部关键点检测</h3>
+        <p>用 Google MediaPipe Hands 检测 21 个手部关键点（手腕、关节、指尖），坐标归一化处理后作为识别输入，支持同时检测双手。</p>
+      </div>
+      <div class="tech-card">
+        <h3>🧠 深度学习分类</h3>
+        <p>四层全连接神经网络（63→512→256→128→类别数），含 BatchNorm 和 Dropout，用 TensorFlow 训练，支持用户自己录样本再训练。</p>
+      </div>
+      <div class="tech-card">
+        <h3>😊 面部表情识别</h3>
+        <p>MediaPipe Face Mesh 检测 468 个面部点，计算嘴巴开合比、眉眼距比，推断中性 / 惊讶 / 皱眉 / 说话中等表情。</p>
+      </div>
+      <div class="tech-card">
+        <h3>📍 手部位置判断</h3>
+        <p>MediaPipe Pose 检测肩膀和髋部坐标，划定身体各区域边界，判断手腕在头部 / 胸部 / 腹部等哪个区域。</p>
+      </div>
+      <div class="tech-card">
+        <h3>📝 句子组合</h3>
+        <p>手势稳定 0.35 秒触发一词，词语按时间顺序拼成句子，1 秒无手势自动换句，支持撤销、提交、查看历史。</p>
+      </div>
+      <div class="tech-card">
+        <h3>🖥 可视化界面</h3>
+        <p>Tkinter 桌面 GUI，含首页 / 实时识别 / 采集数据 / 训练模型 / 手势管理五个页面，支持导入 JSON/ZIP 手势数据包。</p>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:.8rem;">技术栈</div>
+      <div class="stack-pills">
+        <span class="stack-pill"><b>Python 3.10</b></span>
+        <span class="stack-pill"><b>MediaPipe</b> 0.10.13</span>
+        <span class="stack-pill"><b>TensorFlow</b> 2.15</span>
+        <span class="stack-pill"><b>OpenCV</b> 4.9</span>
+        <span class="stack-pill"><b>NumPy</b></span>
+        <span class="stack-pill"><b>Tkinter</b> GUI</span>
+        <span class="stack-pill"><b>Pillow</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>🤟 手语识别 AI 系统 · 参考《国家通用手语常用词表》</p>
+    <p style="margin-top:.4rem;">基于 MediaPipe + TensorFlow 构建</p>
+  </div>
+</footer>
+
+<script>
+const video = document.getElementById('demoVideo');
+const overlay = document.getElementById('playOverlay');
+const playIcon = document.getElementById('playIcon');
+
+function togglePlay() {
+  if (video.paused) {
+    video.play();
+    overlay.classList.add('hidden');
+  } else {
+    video.pause();
+    overlay.classList.remove('hidden');
+    playIcon.textContent = '▶';
+  }
+}
+
+video.addEventListener('ended', () => {
+  overlay.classList.remove('hidden');
+  playIcon.textContent = '↺';
+});
+
+video.addEventListener('click', togglePlay);
+</script>
+
+</body>
+</html>
